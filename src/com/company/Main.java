@@ -24,7 +24,143 @@ public class Main {
     };
 
     public static void main(String[] args) {
-        echo(topKFrequent(new int[]{1,2,3,3,3,2}, 2));
+        echo(codingTest(new String[]{"Jim SICK Vancouver", "Jac HEALTHY Vancouver Burnaby Burnaby Burnaby Burnaby Burnaby"}));
+    }
+
+    public static class Person {
+        String name;
+        String status;
+        String[] locations;
+        int currLocation = 0;
+
+        public Person(String n, String s, String[] locs) {
+            this.name = n;
+            this.status = s;
+            this.locations = locs;
+        }
+
+        public String getStatus() {
+            return this.status;
+        }
+
+        public void setStatus(String s) {
+            this.status = s;
+        }
+
+        public String getName() {
+            return this.name;
+        }
+
+        public String getCurrLocation() {
+            return this.locations[currLocation];
+        }
+
+        public void updateCurrLocation() {
+            this.currLocation = (this.currLocation == this.locations.length - 1) ? 0 : this.currLocation + 1;
+        }
+    }
+
+    public static String getAll(List<Person> ppl, String type) {
+        StringBuilder sb = new StringBuilder();
+        for (Person p : ppl) {
+            if (type == "name") {
+                sb.append(p.getName() + " ");
+            } else {
+                sb.append(p.getStatus() + " ");
+            }
+        }
+        return sb.toString();
+    }
+
+    public static boolean isEveryoneHealthy(List<Person> ppl) {
+        for (Person p : ppl) {
+            if (!p.getStatus().equals("HEALTHY")) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public static void updateStatus(List<Person> ppl) {
+        HashMap<String, List<Person>> place = new HashMap<>();
+
+        for (Person p : ppl) {
+            if (place.containsKey(p.getCurrLocation())) {
+                List<Person> tenants = place.get(p.getCurrLocation());
+                tenants.add(p);
+                place.put(p.getCurrLocation(), tenants);
+            } else {
+                ArrayList<Person> list = new ArrayList<>();
+                list.add(p);
+                place.put(p.getCurrLocation(), list);
+            }
+        }
+
+        for (Map.Entry<String, List<Person>> es : place.entrySet()) {
+            List<Person> tenants = es.getValue();
+            boolean contagious = !isEveryoneHealthy(tenants);
+
+            for (Person p : tenants) {
+                if (contagious) {
+                    if (p.getStatus().equals("HEALTHY")) {
+                        p.setStatus("SICK");
+                        p.updateCurrLocation();
+                        continue;
+                    }
+                }
+                if (p.getStatus().equals("SICK")) {
+                    p.setStatus("RECOVERY");
+                } else if (p.getStatus().equals("RECOVERY")) {
+                    p.setStatus("HEALTHY");
+                }
+                p.updateCurrLocation();
+            }
+        }
+
+    }
+
+    public static String[] codingTest(String[] inputs) {
+        String[] solution = new String[368];
+        List<Person> people = new ArrayList<>();
+        int days = 0;
+
+        for (String input : inputs) {
+            String[] row = input.split(" ");
+            String[] locList = new String[row.length-2];
+            int i = 0;
+            while (i < row.length - 2) {
+                locList[i] = row[i+2];
+                i++;
+            }
+            Person person = new Person(row[0], row[1], locList);
+            people.add(person);
+        }
+
+        solution[0] = getAll(people, "name");
+        solution[1] = getAll(people, "status");
+
+        while (days <= 365) {
+
+            if (isEveryoneHealthy(people)) {
+                solution[days + 2] = Integer.toString(days);
+                return solution;
+            }
+
+            if (days == 365) {
+                solution[days + 2] = Integer.toString(365);
+                return solution;
+            }
+
+            updateStatus(people);
+
+            solution[days + 2] = getAll(people, "status");
+
+            days++;
+        }
+
+        solution[days + 2] = Integer.toString(365);
+
+        return solution;
     }
 
     public static class NumFreq {
